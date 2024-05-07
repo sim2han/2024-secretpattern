@@ -1,16 +1,16 @@
 <head>
-  Hello
+  <meta charset="utf-8">
 </head>
 <body>
-  World asdf
-  <button onclick="myFunction()">클릭</button>
-  <button onclick="update()">현재 시간</button>
+  <button onclick="update()">버스 알아보기</button>
 
   현재시간은 <h1 id="curTime">00:00</h1> 입니다.
 
-  현재 예상 버스 대수는 <h1 id="expectedBus">0</h1>대
+  현재 예상 버스 대수는 <h1 id="expectedBus">0</h1>
 
-  그러니 <h1 id="suggestMethod">달려</h1>!
+  그러니 <h1 id="suggestMethod"></h1>!
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/4.1.2/papaparse.js"></script>
 
   <script>
     function myFunction() {
@@ -36,6 +36,27 @@
       const hours = now.getHours();
       const minutes = now.getMinutes();
       element.innerHTML = "" + hours + ":" + minutes;
+      return hours * 60 + minutes;
+    }
+
+    function setTime(time) {
+      const hours = parseInt(time / 60);
+      const minutes = time % 60;
+      const element = document.getElementById("curTime");
+      element.innerHTML = "" + hours + ":" + minutes;
+    }
+
+    function isValidTime(time) {
+      if (time < 600 || time > 1005) {
+        return false;
+      } else {
+        time -= 600;
+        time %= 30;
+        if (time < 16) {
+          return false;
+        }
+      }
+      return true;
     }
 
     function update() {
@@ -45,10 +66,33 @@
     }
 
     function getExpectedBusCounts() {
-      fetch("data.txt")
+      fetch("pdata.csv")
         .then((res) => res.text())
-        .then((test) => {
-          console.log(test);
+        .then((text) => {
+          Papa.parse(text, {
+            complete: function(results, file) {
+              const element = document.getElementById("expectedBus");
+              const sm = document.getElementById("suggestMethod");
+
+              var time = getTime();
+              //time = 620;
+              
+              setTime(time);
+              if (isValidTime(time)) {
+                const bus = results.data[1][time - 600];
+                element.innerHTML = bus + "대";
+                if (bus >= 3) {
+                  sm.innerHTML = "버스타라";
+                } else {
+                  sm.innerHTML = "달려";
+                }
+
+              } else {
+                element.innerHTML = "알 수 없는 시간";
+                sm.innerHTML = "몰루?"
+              }
+            }
+          });
         })
         .catch((e) => console.error(e));
     }
