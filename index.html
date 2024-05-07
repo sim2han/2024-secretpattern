@@ -41,10 +41,16 @@
     function update() {
       getTime();
       currentTime();
+      getExpectedBusCounts();
     }
 
-    function getExpectedBus() {
-      
+    function getExpectedBusCounts() {
+      fetch("data.txt")
+        .then((res) => res.text())
+        .then((test) => {
+          console.log(test);
+        })
+        .catch((e) => console.error(e));
     }
   </script>
 </body>
