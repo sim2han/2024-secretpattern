@@ -35,15 +35,17 @@
       const now = new Date();
       const hours = now.getHours();
       const minutes = now.getMinutes();
-      element.innerHTML = "" + hours + ":" + minutes;
       return hours * 60 + minutes;
     }
 
-    function setTime(time) {
+    function setTime(time, day) {
       const hours = parseInt(time / 60);
       const minutes = time % 60;
       const element = document.getElementById("curTime");
-      element.innerHTML = "" + hours + ":" + minutes;
+
+      const daylist = ["일", "월", "화", "수", "목", "금", "토"];
+
+      element.innerHTML = daylist[day] + "요일 " + hours + ":" + minutes;
     }
 
     function isValidTime(time) {
@@ -75,13 +77,13 @@
               const sm = document.getElementById("suggestMethod");
 
               var time = getTime();
-              //time = 620;
+              const day = new Date().getDay();
               
-              setTime(time);
-              if (isValidTime(time)) {
-                const bus = results.data[1][time - 600];
+              setTime(time, day);
+              if (isValidTime(time) && 1 <= day && day <= 5) {
+                const bus = results.data[day][time - 600];
                 element.innerHTML = bus + "대";
-                if (bus >= 3) {
+                if (bus >= 5) {
                   sm.innerHTML = "버스타라";
                 } else {
                   sm.innerHTML = "달려";
