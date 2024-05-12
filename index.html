@@ -78,9 +78,7 @@
 
               var time = getTime();
               var day = new Date().getDay();
-              day = 1
-              time = 616
-
+              
               setTime(time, day);
               if (isValidTime(time) && 1 <= day && day <= 5) {
                 bus = results.data[day][time - 600];
