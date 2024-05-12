@@ -8,7 +8,7 @@
 
   현재 예상 버스 대수는 <h1 id="expectedBus">0</h1>
 
-  그러니 <h1 id="suggestMethod"></h1>!
+  그러니 <h1 id="suggestMethod"></h1>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/4.1.2/papaparse.js"></script>
 
@@ -77,21 +77,23 @@
               const sm = document.getElementById("suggestMethod");
 
               var time = getTime();
-              const day = new Date().getDay();
+              var day = new Date().getDay();
+              day = 1
+              time = 616
 
               setTime(time, day);
               if (isValidTime(time) && 1 <= day && day <= 5) {
                 bus = results.data[day][time - 600];
                 element.innerHTML = "" + parseFloat(bus).toFixed(1) + "대";
                 if (bus >= 5) {
-                  sm.innerHTML = "버스타라";
+                  sm.innerHTML = "버스타고가세요!";
                 } else {
-                  sm.innerHTML = "달려";
+                  sm.innerHTML = "어서 달리세요!";
                 }
 
               } else {
                 element.innerHTML = "알 수 없는 시간";
-                sm.innerHTML = "몰?루"
+                sm.innerHTML = "모르겠어요..."
               }
             }
           });
