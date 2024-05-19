@@ -1,0 +1,102 @@
+<head>
+  <meta charset="utf-8">
+</head>
+<body>
+  <button onclick="update()">버스 알아보기</button>
+
+  현재시간은 <h1 id="curTime">00:00</h1> 입니다.
+
+  현재 예상 버스 대수는 <h1 id="expectedBus">0</h1>
+
+  그러니 <h1 id="suggestMethod"></h1>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/4.1.2/papaparse.js"></script>
+
+  <script>
+    function myFunction() {
+      console.log("버튼 클릭");
+    }
+
+    function currentDate() {
+      const date = new Date().toLocaleDateString();
+      console.log(date);
+      return date;
+    }
+
+    function currentTime() {
+      const now = new Date();
+      const hours = now.getHours();
+      const minutes = now.getMinutes();
+      return hours * 60 + minutes;
+    }
+
+    function getTime() {
+      const element = document.getElementById("curTime");
+      const now = new Date();
+      const hours = now.getHours();
+      const minutes = now.getMinutes();
+      return hours * 60 + minutes;
+    }
+
+    function setTime(time, day) {
+      const hours = parseInt(time / 60);
+      const minutes = time % 60;
+      const element = document.getElementById("curTime");
+
+      const daylist = ["일", "월", "화", "수", "목", "금", "토"];
+
+      element.innerHTML = daylist[day] + "요일 " + hours + ":" + minutes;
+    }
+
+    function isValidTime(time) {
+      if (time < 600 || time > 1005) {
+        return false;
+      } else {
+        time -= 600;
+        time %= 30;
+        if (time < 16) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    function update() {
+      getTime();
+      currentTime();
+      getExpectedBusCounts();
+    }
+
+    function getExpectedBusCounts() {
+      fetch("pdata.csv")
+        .then((res) => res.text())
+        .then((text) => {
+          Papa.parse(text, {
+            complete: function(results, file) {
+              const element = document.getElementById("expectedBus");
+              const sm = document.getElementById("suggestMethod");
+
+              var time = getTime();
+              var day = new Date().getDay();
+
+              setTime(time, day);
+              if (isValidTime(time) && 1 <= day && day <= 5) {
+                bus = results.data[day][time - 600];
+                element.innerHTML = "" + parseFloat(bus).toFixed(1) + "대";
+                if (bus >= 5) {
+                  sm.innerHTML = "버스타고 가세요!";
+                } else {
+                  sm.innerHTML = "어서 달리세요!";
+                }
+
+              } else {
+                element.innerHTML = "알 수 없는 시간";
+                sm.innerHTML = "모르겠어요..."
+              }
+            }
+          });
+        })
+        .catch((e) => console.error(e));
+    }
+  </script>
+</body>

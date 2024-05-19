@@ -1,102 +1,184 @@
+<!DOCTYPE html>
+<html lang="ko">
 <head>
-  <meta charset="utf-8">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>버스를 탈까 뛰어 갈까</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f2f2f2;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        #time, #current-time-button, #input-time-button {
+            padding: 10px;
+            font-size: 16px;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        #current-time-button, #input-time-button {
+            background-color: #007bff;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        #current-time-button:hover {
+            background-color: #0056b3;
+        }
+        #result {
+            margin-top: 20px;
+            font-size: 20px;
+            color: #555;
+        }
+    </style>
 </head>
 <body>
-  <button onclick="update()">버스 알아보기</button>
+    <div class="container">
+        <h1>시간에 따른 텍스트 보기</h1>
+        <label for="time">시간 선택:</label>
+        <input type="time" id="time" name="time" value="10:15">
+        <br>
+        <label for="day">요일 선택:</label>
+        <select id="day">
+            <option value="월요일">월요일</option>
+            <option value="화요일">화요일</option>
+            <option value="수요일">수요일</option>
+            <option value="목요일">목요일</option>
+            <option value="금요일">금요일</option>
+        </select>
+        <br>
+        <br>
+        <button id="input-time-button">입력한 시간 보기</button>
+        혹은
+        <button id="current-time-button">현재 시간 보기</button>
+        <div id="current-time"></div>
+        <div id="expected-bus-count"></div>
+        <div id="result"></div>
+    </div>
 
-  현재시간은 <h1 id="curTime">00:00</h1> 입니다.
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/4.1.2/papaparse.js"></script>
+    <script>
+        var pdata;
 
-  현재 예상 버스 대수는 <h1 id="expectedBus">0</h1>
-
-  그러니 <h1 id="suggestMethod"></h1>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/4.1.2/papaparse.js"></script>
-
-  <script>
-    function myFunction() {
-      console.log("버튼 클릭");
-    }
-
-    function currentDate() {
-      const date = new Date().toLocaleDateString();
-      console.log(date);
-      return date;
-    }
-
-    function currentTime() {
-      const now = new Date();
-      const hours = now.getHours();
-      const minutes = now.getMinutes();
-      return hours * 60 + minutes;
-    }
-
-    function getTime() {
-      const element = document.getElementById("curTime");
-      const now = new Date();
-      const hours = now.getHours();
-      const minutes = now.getMinutes();
-      return hours * 60 + minutes;
-    }
-
-    function setTime(time, day) {
-      const hours = parseInt(time / 60);
-      const minutes = time % 60;
-      const element = document.getElementById("curTime");
-
-      const daylist = ["일", "월", "화", "수", "목", "금", "토"];
-
-      element.innerHTML = daylist[day] + "요일 " + hours + ":" + minutes;
-    }
-
-    function isValidTime(time) {
-      if (time < 600 || time > 1005) {
-        return false;
-      } else {
-        time -= 600;
-        time %= 30;
-        if (time < 16) {
-          return false;
+        // 데이터 읽기
+        window.onload=function() {
+          fetch("pdata.csv")
+            .then((res) => res.text())
+            .then((text) => {
+              pdata = text;
+              console.log(text);
+            })
         }
-      }
-      return true;
-    }
 
-    function update() {
-      getTime();
-      currentTime();
-      getExpectedBusCounts();
-    }
+        // 입력된 시간에 따른 설정
+        document.getElementById("input-time-button").addEventListener("click", function() {
+            var currentTime = document.getElementById("time").value;
+            var day_str = document.getElementById("day").value;
+            var day = 0;
 
-    function getExpectedBusCounts() {
-      fetch("pdata.csv")
-        .then((res) => res.text())
-        .then((text) => {
-          Papa.parse(text, {
-            complete: function(results, file) {
-              const element = document.getElementById("expectedBus");
-              const sm = document.getElementById("suggestMethod");
+            if (day_str === "월요일")
+                day = 1;
+            else if (day_str === "화요일")
+                day = 2;
+            else if (day_str === "수요일")
+                day = 3;
+            else if (day_str === "목요일")
+                day = 4;
+            else if (day_str === "금요일")
+                day = 5;
+            
+            setTextByTime(currentTime, day);
+        });
 
-              var time = getTime();
-              var day = new Date().getDay();
+        // 현재 시간에 따른 설정
+        document.getElementById("current-time-button").addEventListener("click", function() {
+            var currentTime = getCurrentTime();
+            var day = new Date().getDay();
 
-              setTime(time, day);
-              if (isValidTime(time) && 1 <= day && day <= 5) {
-                bus = results.data[day][time - 600];
-                element.innerHTML = "" + parseFloat(bus).toFixed(1) + "대";
-                if (bus >= 5) {
-                  sm.innerHTML = "버스타고 가세요!";
-                } else {
-                  sm.innerHTML = "어서 달리세요!";
-                }
+            //setTextByTime(currentTime, day);
 
-              } else {
-                element.innerHTML = "알 수 없는 시간";
-                sm.innerHTML = "모르겠어요..."
-              }
+            setTextByTime("10:36", 1);
+        });
+
+        /// 시간에 따른 텍스트를 반환하는 함수
+        function setTextByTime(time, day) {
+            let timeDiv = document.getElementById('current-time');
+            let busDiv = document.getElementById("expected-bus-count");
+            let resultDiv = document.getElementById("result");
+
+            // 날짜 텍스트 설정
+            const daylist = ["일", "월", "화", "수", "목", "금", "토"];
+            const day_str = daylist[day] + "요일 "
+            timeDiv.innerText = "현재 시각은 " + day_str + time + "입니다.";
+
+            let hour = parseInt(time.split(":")[0]);
+            let minute = parseInt(time.split(":")[1]);
+
+            let minutes = hour*60 + minute;
+            if (!isValidTime(minutes) || !isValidDay(day)) {
+                busDiv.innerHTML = "알 수 없는 시간";
+                resultDiv.innerHTML = "모르겠어요...";
+                return;
             }
-          });
-        })
-        .catch((e) => console.error(e));
-    }
-  </script>
+
+            Papa.parse(pdata, {
+                complete: function(results, file) {
+                    console.log(day);
+                    console.log(time);
+                    console.log(results.data[day]);
+                    bus_count = results.data[day][minutes - 600];
+
+                    busDiv.innerHTML = "예상되는 버스는 " + bus_count + "대";
+
+                    if (bus_count >= 5) {
+                        resultDiv.innerHTML = "버스타고 가세요!";
+                    } else {
+                        resultDiv.innerHTML = "어서 달리세요!";
+                    }
+                }
+            })
+        }
+
+        // 현재 시간을 문자열로 반환하는 함수
+        function getCurrentTime() {
+            var now = new Date();
+            var hour = now.getHours();
+            var minute = now.getMinutes();
+            return `${hour}:${minute}`;
+        }
+
+        // 시간의 유효성을 검증하는 함수
+        function isValidTime(time) {
+          if (time < 600 || time > 1005) {
+            return false;
+          } else {
+            time -= 600;
+            time %= 30;
+            if (time < 16) {
+              return false;
+            }
+          }
+          return true;
+        }
+
+        // 요일의 유효성을 검증하는 함수
+        function isValidDay(day) {
+            if (1 <= day && day <= 5)
+              return true;
+            else
+                return false;
+        }
+    </script>
 </body>
+</html>
