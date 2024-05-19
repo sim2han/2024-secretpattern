@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>버스를 탈까 뛰어 갈까</title>
+    <title>버스를 탈까, 뛰어 갈까</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             text-align: center;
-            background-color: #f2f2f2;
+            background-color: #f0efe7;
             margin: 0;
             padding: 0;
         }
@@ -40,12 +40,21 @@
             margin-top: 20px;
             font-size: 20px;
             color: #555;
+            font-weight: bold;
+        }
+        .note {
+            color: #888;
+            font-size: 14px;
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>시간에 따른 텍스트 보기</h1>
+        <h1>버스를 탈까, 뛰어 갈까</h1>
+        <div class="note">10~16시, 15~29분 혹은 45~59분 사이 시간을 입력해주세요.</div>
+        <br>
+        <br>
         <label for="time">시간 선택:</label>
         <input type="time" id="time" name="time" value="10:15">
         <br>
@@ -62,6 +71,8 @@
         <button id="input-time-button">입력한 시간 보기</button>
         혹은
         <button id="current-time-button">현재 시간 보기</button>
+        <br>
+        <br>
         <div id="current-time"></div>
         <div id="expected-bus-count"></div>
         <div id="result"></div>
@@ -73,12 +84,11 @@
 
         // 데이터 읽기
         window.onload=function() {
-          fetch("pdata.csv")
-            .then((res) => res.text())
-            .then((text) => {
-              pdata = text;
-              console.log(text);
-            })
+            fetch("pdata.csv")
+                .then((res) => res.text())
+                .then((text) => {
+                    pdata = text;
+                })
         }
 
         // 입력된 시간에 따른 설정
@@ -106,9 +116,7 @@
             var currentTime = getCurrentTime();
             var day = new Date().getDay();
 
-            //setTextByTime(currentTime, day);
-
-            setTextByTime("10:36", 1);
+            setTextByTime(currentTime, day);
         });
 
         /// 시간에 따른 텍스트를 반환하는 함수
@@ -120,13 +128,16 @@
             // 날짜 텍스트 설정
             const daylist = ["일", "월", "화", "수", "목", "금", "토"];
             const day_str = daylist[day] + "요일 "
-            timeDiv.innerText = "현재 시각은 " + day_str + time + "입니다.";
+            timeDiv.innerText = "입력 시각은 " + day_str + time + "입니다.";
 
             let hour = parseInt(time.split(":")[0]);
             let minute = parseInt(time.split(":")[1]);
 
+            timeDiv.innerText = "입력 시각은 " + day_str + hour + "시 "
+                + minute + "분" + "입니다.";            
+
             let minutes = hour*60 + minute;
-            if (!isValidTime(minutes) || !isValidDay(day)) {
+            if (time.length < 1 || !isValidTime(minutes) || !isValidDay(day)) {
                 busDiv.innerHTML = "알 수 없는 시간";
                 resultDiv.innerHTML = "모르겠어요...";
                 return;
@@ -134,14 +145,10 @@
 
             Papa.parse(pdata, {
                 complete: function(results, file) {
-                    console.log(day);
-                    console.log(time);
-                    console.log(results.data[day]);
                     bus_count = results.data[day][minutes - 600];
+                    busDiv.innerHTML = "예상되는 버스는 " + parseFloat(bus_count).toFixed(1) + "대";
 
-                    busDiv.innerHTML = "예상되는 버스는 " + bus_count + "대";
-
-                    if (bus_count >= 5) {
+                    if (parseFloat(bus_count) >= 5) {
                         resultDiv.innerHTML = "버스타고 가세요!";
                     } else {
                         resultDiv.innerHTML = "어서 달리세요!";
@@ -160,22 +167,21 @@
 
         // 시간의 유효성을 검증하는 함수
         function isValidTime(time) {
-          if (time < 600 || time > 1005) {
-            return false;
-          } else {
-            time -= 600;
-            time %= 30;
-            if (time < 16) {
-              return false;
-            }
-          }
-          return true;
+            if (time < 600 || time > 1005) {
+                return false;
+            } else {
+                time -= 600;
+                time %= 30;
+                if (time < 15)
+                    return false;
+                }
+            return true;
         }
 
         // 요일의 유효성을 검증하는 함수
         function isValidDay(day) {
             if (1 <= day && day <= 5)
-              return true;
+                return true;
             else
                 return false;
         }
