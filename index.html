@@ -148,7 +148,7 @@
                     bus_count = results.data[day][minutes - 600];
                     busDiv.innerHTML = "예상되는 버스는 " + parseFloat(bus_count).toFixed(1) + "대";
 
-                    if (parseFloat(bus_count) >= 5) {
+                    if (parseFloat(bus_count) >= 5.0) {
                         resultDiv.innerHTML = "버스타고 가세요!";
                     } else {
                         resultDiv.innerHTML = "어서 달리세요!";
